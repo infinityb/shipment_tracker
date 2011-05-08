@@ -114,6 +114,10 @@ class ShipmentTrackerPlugin < Plugin
                 }
         end # cron_notify
 
+	def help(plugin, topic="")
+		"shipment [ \002Label\017 | \002TrackingNumber\017 \002CourierName\017 ]"
+	end
+
 end # ShipmentTrackerPlugin
 
 plugin = ShipmentTrackerPlugin.new

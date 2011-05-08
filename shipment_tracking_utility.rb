@@ -175,7 +175,7 @@ class ShipmentTrackingUtilityPlugin < Plugin
 	end
 	attr_accessor :scrapers
 
-	def help(action="")
+	def help(plugin, topic="")
 		"This plugin is a utility plugin which is only meant to be used by other plugins."
 	end
 end
