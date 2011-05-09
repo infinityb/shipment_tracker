@@ -114,8 +114,12 @@ class ShipmentTrackerPlugin < Plugin
                 }
         end # cron_notify
 
+	def show_labels(m, params)
+		m.reply "Available labels: " + @tracking_numbers.keys.map {|k| "\0033#{k}\017" }.join(', ')
+	end
+
 	def help(plugin, topic="")
-		"shipment [ \002Label\017 | \002TrackingNumber\017 \002CourierName\017 ]"
+		"shipment [ list | \002Label\017 | \002TrackingNumber\017 \002CourierName\017 ]"
 	end
 
 end # ShipmentTrackerPlugin
@@ -124,6 +128,7 @@ plugin = ShipmentTrackerPlugin.new
 plugin.default_auth('notify', false)
 
 plugin.map 'shipment', :action => 'status_all'
+plugin.map 'shipment list', :action => 'show_labels'
 plugin.map 'shipment :label', :action => 'status_named'
 plugin.map 'shipment :number :courier', :action => 'status_unnamed'
 #plugin.map 'shipment add ":label" :number :courier', :action => 'add_shipment'
