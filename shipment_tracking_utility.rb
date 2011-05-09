@@ -22,7 +22,7 @@ class ShipmentTrackingUtilityPlugin < Plugin
 		end # initialize
 
 		def ircify
-			"#{activity} @ #{time} - #{location}"
+			"#{activity} @ #{time}#{" - #{location}" if location}"
 		end
 	end # ShipmentStatus
 
@@ -94,16 +94,16 @@ class ShipmentTrackingUtilityPlugin < Plugin
 
 			def self.fetch(number)
 				doc = Nokogiri::HTML(open("https://eshiponline.purolator.com/SHIPONLINE/Public/Track/TrackingDetails.aspx?pin=#{number}"))
-				latest_row = doc.search('').first
+				latest_row = doc.search('//div[@id="detailTable"]/table/tbody/tr').first
 
 				if latest_row
-					latest_row = latest_row #.tranformations if needed
+					latest_row = latest_row.search('./td')
 
 					status = ShipmentStatus.new(
 						:number => number,
-						:location => :NotImplementedError,
-						:time => :NotImplementedError,
-						:activity => :NotImplementedError,
+						:location => nil,
+						:time => latest_row[0].inner_text + ' ' + latest_row[1].inner_text,
+						:activity => latest_row[2].inner_text,
 						:carrier => PRIMARY_NAME
 					)
 				else
@@ -117,16 +117,14 @@ class ShipmentTrackingUtilityPlugin < Plugin
 
 			def self.fetch(number)
 				doc = Nokogiri::HTML(open("http://www.newegg.com/Info/TrackOrder.aspx?TrackingNumber=#{number}"))
-				latest_row = doc.search('div[@id=collapse3]').first
+				latest_row = doc.search('table[@class="trackDetailUPSSum"]/tr')[1]
 
 				if latest_row
-					latest_row = latest_row #.tranformations if needed
-
 					status = ShipmentStatus.new(
 						:number => number,
-						:location => :NotImplementedError,
-						:time => :NotImplementedError,
-						:activity => :NotImplementedError,
+						:location => nil,
+						:time => latest_row.search('./td')[0].inner_text,
+						:activity => latest_row.search('./td')[1].inner_text,
 						:carrier => PRIMARY_NAME
 					)
 				else
@@ -171,7 +169,7 @@ class ShipmentTrackingUtilityPlugin < Plugin
 		@scrapers.register(Scrapers::UPS)
 		@scrapers.register(Scrapers::FedEx)
 		@scrapers.register(Scrapers::Purolator)
-		#@scrapers.register(Scrapers::Newegg)
+		@scrapers.register(Scrapers::Newegg)
 	end
 	attr_accessor :scrapers
 

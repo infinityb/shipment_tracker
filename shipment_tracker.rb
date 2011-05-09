@@ -73,7 +73,7 @@ class ShipmentTrackerPlugin < Plugin
 			status = get_scraper_manager.fetch(courier, number)
 
 			if status
-				m.reply status
+				m.reply status.ircify
 			else # status = nil
 				m.reply "Sorry, no information is available."
 			end # status
@@ -93,12 +93,12 @@ class ShipmentTrackerPlugin < Plugin
 				m.reply "Sorry, that courier service is not supported. :("
 				return
 			end
-			ssr = status_fetch(label)
-			if ssr
-				m.reply ssr
+			status = status_fetch(label)
+			if status
+				m.reply status.ircify
 			else # status = nil
 				m.reply "Sorry, no information is available."
-			end
+			end # status
 		else
 			m.reply "Sorry, I don't know a shipment by that name"
 		end
