@@ -16,24 +16,8 @@ class ShipmentTrackerPlugin < Plugin
 	def initialize
 		super
 		@tracking_numbers = {
-			#'Case' => '1ZX799390310081385',
-			#'Everything else' => '1ZX799331231131463'
-			#'Disks' => {:number => '1Z462E560321092067', :courier => 'ups'},
-			#'Fans' => {:number => '1ZX799470329512449', :courier => 'ups'},
-			#'Monitor' => {:number => '134619891746049', :courier => 'fedex'}
-			# "Final Fantasy™ XIV COLLECTOR'S EDITION" => {:number => '1Z04462W1300903990', :courier => 'ups'}
-			#"IB's dicks" => {:number => '1Z8FX6286801195292', :courier => 'ups'},
-			#"WoW Anthology" => {:number => '1ZA7810W0398708948', :courier => 'ups'}
-			#"Overpriced HID" => {:number => '1Z4F37F10399609311', :courier => 'ups'}
-			#"魔法少女リリカルなのは　The MOVIE 1st＜初回限定版＞" => {:number => '424981299085', :courier => 'fedex'}
-			#'Disk' => {:number => '1ZX799470342426740', :courier => 'ups'},
-			#'WiMAX CPE' => {:number => '485264002054', :courier => 'fedex'},
-			#'WiMAX CPE the 2nd' => {:number => '485264110765', :courier => 'fedex'},
-			#'WiMAX CPE - ODU ' => {:number => '1Z3X3F271343232801', :courier => 'ups'},
-			#'Plus Headphones' => {:number => '1Z0X118A1210790602', :courier => 'ups'},
-			#'HD 280 Pro' => {:number => '1Z5993920144768026', :courier => 'ups'},
-			#'Gentech CPE' => {:number => '1Z07R37W9096472131', :courier => :ups},
-			'IBの6950' => {:number => 'KCV000120856', :courier => :newegg},
+			'sup3r_k00l_k0mput3r' => {:number => '1ZX799330351143662', :courier => :ups},
+			'plus-vidya' => {:number => '9405510200793822795785', :courier => :usps }
 		}
 	end # initialize 
 
@@ -44,7 +28,7 @@ class ShipmentTrackerPlugin < Plugin
 
 	def status_fetch(label)
 		info = @tracking_numbers[label]
-		ShipmentStatusRecord.new(label, get_scraper_manager.fetch(info[:courier], info[:number]))
+		return ShipmentStatusRecord.new(label, get_scraper_manager.fetch(info[:courier], info[:number]))
 	end # status_fetch
 
 	public
@@ -60,9 +44,9 @@ class ShipmentTrackerPlugin < Plugin
 				m.reply "#{label}: Sorry, no information is available."
 			end
 		}
-        rescue Exception => e
-                m.reply e.class
-                m.reply e
+	rescue Exception => e
+		m.reply e.class
+		m.reply e
 	end # status
 
 	def status_unnamed(m, params)
@@ -95,7 +79,7 @@ class ShipmentTrackerPlugin < Plugin
 			end
 			status = status_fetch(label)
 			if status
-				m.reply status.ircify
+				m.reply status
 			else # status = nil
 				m.reply "Sorry, no information is available."
 			end # status
@@ -108,11 +92,17 @@ class ShipmentTrackerPlugin < Plugin
 	end
 
 	def cron_notify(m, params)
-		status_fetch.each {|msg|
-                        @bot.say '#', msg if msg.status.ircify != @registry[msg.label]
-                        @registry[msg.label] = msg.status.ircify
-                }
-        end # cron_notify
+		@tracking_numbers.keys.each {|label|
+			msg = status_fetch(label)
+			next if msg.status.ircify == @registry[msg.label]
+
+			@bot.say '#', msg
+			if @tracking_numbers[label].has_key?(:owner)
+				@bot.say @tracking_numbers[label][:owner], msg
+			end
+			@registry[msg.label] = msg.status.ircify
+		}
+	end # cron_notify
 
 	def show_labels(m, params)
 		m.reply "Available labels: " + @tracking_numbers.keys.map {|k| "\0033#{k}\017" }.join(', ')
@@ -129,8 +119,8 @@ plugin.default_auth('notify', false)
 
 plugin.map 'shipment', :action => 'status_all'
 plugin.map 'shipment list', :action => 'show_labels'
+plugin.map 'shipment cron_notify', :action => 'cron_notify', :auth_path => 'notify'
 plugin.map 'shipment :label', :action => 'status_named'
 plugin.map 'shipment :number :courier', :action => 'status_unnamed'
 #plugin.map 'shipment add ":label" :number :courier', :action => 'add_shipment'
-plugin.map 'shipment cron_notify', :action => 'cron_notify', :auth_path => 'notify'
 

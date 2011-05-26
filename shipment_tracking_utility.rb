@@ -22,7 +22,7 @@ class ShipmentTrackingUtilityPlugin < Plugin
 		end # initialize
 
 		def ircify
-			"#{activity} @ #{time}#{" - #{location}" if location}"
+			"#{activity}#{" @ #{time}" if time}#{" - #{location}" if location}"
 		end
 	end # ShipmentStatus
 
@@ -132,6 +132,26 @@ class ShipmentTrackingUtilityPlugin < Plugin
 				end
 			end
 		end
+		module USPS
+			NAME_KEYS = [:usps]
+			PRIMARY_NAME = 'USPS'
+
+			def self.fetch(number)
+				doc = Nokogiri::HTML(open("http://trkcnfrm1.smi.usps.com/PTSInternetWeb/InterLabelInquiry.do?origTrackNum=#{number}"))
+				latest_row = doc.search('//table[@summary="This table formats the detailed results."]/tr')[1]
+				if latest_row
+					status = ShipmentStatus.new(
+						:number => number,
+						:location => nil,
+						:time => nil,
+						:activity => latest_row.inner_text.strip(),
+						:carrier => PRIMARY_NAME
+					)
+				else
+					nil
+				end
+			end	
+		end
 	end
 
 	class ShipmentScreenScraperManager
@@ -170,6 +190,7 @@ class ShipmentTrackingUtilityPlugin < Plugin
 		@scrapers.register(Scrapers::FedEx)
 		@scrapers.register(Scrapers::Purolator)
 		@scrapers.register(Scrapers::Newegg)
+		@scrapers.register(Scrapers::USPS)
 	end
 	attr_accessor :scrapers
 
