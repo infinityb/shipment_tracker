@@ -102,8 +102,8 @@ class ShipmentTrackingUtilityPlugin < Plugin
 					status = ShipmentStatus.new(
 						:number => number,
 						:location => nil,
-						:time => latest_row[0].inner_text + ' ' + latest_row[1].inner_text,
-						:activity => latest_row[2].inner_text,
+						:time => (latest_row[0].inner_text + ' ' + latest_row[1].inner_text).gsub("\n", ' ').gsub(/\s+/, ' '),
+						:activity => latest_row[2].inner_text.gsub("\n", ' ').gsub(/\s+/, ' '),
 						:carrier => PRIMARY_NAME
 					)
 				else
@@ -122,9 +122,10 @@ class ShipmentTrackingUtilityPlugin < Plugin
 				if latest_row
 					status = ShipmentStatus.new(
 						:number => number,
-						:location => nil,
-						:time => latest_row.search('./td')[0].inner_text,
-						:activity => latest_row.search('./td')[1].inner_text,
+						:location => latest_row.search('./td').size == 4 ? \
+							latest_row.search('./td')[2].inner_text.strip : nil,
+						:time => latest_row.search('./td')[0].inner_text.strip,
+						:activity => latest_row.search('./td')[1].inner_text.strip,
 						:carrier => PRIMARY_NAME
 					)
 				else
