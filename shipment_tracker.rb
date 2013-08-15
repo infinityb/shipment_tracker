@@ -109,6 +109,9 @@ class ShipmentTrackerPlugin < Plugin
 	rescue Exception => e
 		m.reply e.class
 		m.reply e
+		if m.channel == '#lolinano'
+			m.reply e.backtrace
+		end
 	end
 
 	def cron_notify(m, params)
@@ -142,7 +145,7 @@ class ShipmentTrackerPlugin < Plugin
 	end
 
 	def help(plugin, topic="")
-		"shipment [ list | add \002Label\017 \002TrackingNumber\017 \002CourierName\017 | \002Label\017 | \002TrackingNumber\017 \002CourierName\017 ]"
+		"shipment [ list | add \002Label\017 \002TrackingNumber\017 \002CourierName\017 | del \002Label\017 | \002Label\017 | \002TrackingNumber\017 \002CourierName\017 ]"
 	end
 
 	def add_shipment(m, params)

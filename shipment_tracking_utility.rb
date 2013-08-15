@@ -1,7 +1,7 @@
 require 'rubygems'
 require 'nokogiri'
 require 'open-uri'
-require 'json' # fuck fedex in the ass
+require 'json'
 
 class ShipmentTrackingUtilityPlugin < Plugin
 	class ShipmentStatus
@@ -33,16 +33,16 @@ class ShipmentTrackingUtilityPlugin < Plugin
 
 			def self.fetch(number)
 				doc = Nokogiri::HTML(open("http://wwwapps.ups.com/WebTracking/processInputRequest?sort_by=status&tracknums_displayed=1&TypeOfInquiryNumber=T&loc=en_US&InquiryNumber1=#{number}&track.x=0&track.y=0"))
-				latest_row = doc.search('div[@id=collapse3]').first
+				table = doc.search('table[@class=dataTable]').first
+				latest_row = table.search('tr')[1]
 
 				if latest_row
-					latest_row = latest_row.next_sibling.next_sibling.next_sibling.next_sibling.next_sibling.next_sibling.search('tr')[1]
-
+					cells = latest_row.search('td')
 					status = ShipmentStatus.new(
 						:number => number,
-						:location => latest_row.children[0].children.first.content.ircify_html,
-						:time => latest_row.children[2].content.ircify_html << " " << latest_row.children[4].content.ircify_html,
-						:activity => latest_row.children[6].content.ircify_html,
+						:location => cells[0].content.ircify_html,
+						:time => (cells[1].content + " " + cells[2].content).ircify_html,
+						:activity => cells[3].content.ircify_html,
 						:carrier => PRIMARY_NAME
 					)
 				else
@@ -114,22 +114,46 @@ class ShipmentTrackingUtilityPlugin < Plugin
 		module Newegg
 			NAME_KEYS = [:newegg]
 			PRIMARY_NAME = 'newegg'
-
+			def self._get_json_obj(doc)
+				javascript_tags = doc.search('script[@type="text/javascript"]').
+					find_all {|x| x.to_s.include?('detailInfoObject') }
+				if javascript_tags.empty?
+					return nil
+				end
+				split_data = javascript_tags[0].text.strip.
+					split(";\r\n")[0].split("=", 2)
+				if split_data.size != 2
+					return nil
+				end
+				return JSON.parse(split_data[1].strip)
+			end
 			def self.fetch(number)
 				doc = Nokogiri::HTML(open("http://www.newegg.com/Info/TrackOrder.aspx?TrackingNumber=#{number}"))
 				latest_row = doc.search('table[@class="trackDetailUPSSum"]/tr')[1]
 
-				if latest_row
-					status = ShipmentStatus.new(
+				json_data = _get_json_obj(doc)
+				if json_data and json_data.include?('scans') and !json_data['scans'].empty?
+					latestScan = json_data['scans'][0]
+					ShipmentStatus.new(
 						:number => number,
-						:location => latest_row.search('./td').size == 4 ? \
-							latest_row.search('./td')[2].inner_text.strip : nil,
-						:time => latest_row.search('./td')[0].inner_text.strip,
-						:activity => latest_row.search('./td')[1].inner_text.strip,
+						:location => latestScan['scanLocation'],
+						:time => ("%s %s %s" % [
+							  latestScan['scanDate'],
+							  latestScan['scanTime'],
+							  latestScan['GMTOffset']
+						]),
+						:activity => latestScan['scanStatus'],
 						:carrier => PRIMARY_NAME
 					)
-				else
-					nil
+				elsif latest_row
+					datetime, location, activity = latest_row.search('td').map(&:text)
+					ShipmentStatus.new(
+						:number => number,
+						:location => location,
+						:time => datetime,
+						:activity => activity,
+						:carrier => PRIMARY_NAME
+					)
 				end
 			end
 		end
