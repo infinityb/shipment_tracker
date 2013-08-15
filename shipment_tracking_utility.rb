@@ -1,7 +1,7 @@
 require 'rubygems'
 require 'nokogiri'
 require 'open-uri'
-require 'json'
+require 'json' 
 
 class ShipmentTrackingUtilityPlugin < Plugin
 	class ShipmentStatus
@@ -62,7 +62,7 @@ class ShipmentTrackingUtilityPlugin < Plugin
 				doc.each_line do |line|
 					if line =~ /^var detailInfoObject/
 						data = line
-						break # fuck the rest of this page
+						break # ignore the rest of this page
 					end
 				end
 				data = data.sub(/var detailInfoObject = /, '').sub(/;\n$/, '')
