@@ -196,11 +196,12 @@ plugin.default_auth('notify', false)
 
 plugin.map 'shipment', :action => 'status_all'
 plugin.map 'shipment list', :action => 'show_labels'
+plugin.map 'shipment list couriers', :action => 'show_couriers'
+
 plugin.map 'shipment cron_notify', :action => 'cron_notify', :auth_path => 'notify'
 
 plugin.map 'shipment del :label', :action => 'del_shipment'
 plugin.map 'shipment add :label :number :courier', :action => 'add_shipment'
 
-plugin.map 'shipment :couriers', :action => 'show_couriers'
 plugin.map 'shipment :label', :action => 'status_named'
 plugin.map 'shipment :number :courier', :action => 'status_unnamed'
