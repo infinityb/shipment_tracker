@@ -157,6 +157,28 @@ class ShipmentTrackingUtilityPlugin < Plugin
 				end
 			end
 		end
+		module PackageTrackr
+			NAME_KEYS = [:packagetrackr]
+			PRIMARY_NAME = 'packagetrackr'
+		
+			def self.fetch(number)
+				doc = Nokogiri::HTML(open("http://www.packagetrackr.com/track/#{number}"))
+				latest_row = doc.search('//[class~="track-info-progress"]//tr')[0]
+				details = latest_row.children[0].inner_text.strip.split(/\n/)
+		
+				if details
+					status = ShipmentStatus.new(
+						:number => number,
+						:location => details[0],
+						:time => details[1],
+						:activity => details[2],
+						:carrier => PRIMARY_NAME
+					)
+				else
+					nil
+				end
+			end 
+		end
 		module USPS
 			NAME_KEYS = [:usps]
 			PRIMARY_NAME = 'USPS'
@@ -175,7 +197,7 @@ class ShipmentTrackingUtilityPlugin < Plugin
 				else
 					nil
 				end
-			end	
+			end
 		end
 	end
 
@@ -215,6 +237,7 @@ class ShipmentTrackingUtilityPlugin < Plugin
 		@scrapers.register(Scrapers::FedEx)
 		@scrapers.register(Scrapers::Purolator)
 		@scrapers.register(Scrapers::Newegg)
+		@scrapers.register(Scrapers::PackageTrackr)
 		@scrapers.register(Scrapers::USPS)
 	end
 	attr_accessor :scrapers
