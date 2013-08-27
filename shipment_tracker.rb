@@ -145,7 +145,7 @@ class ShipmentTrackerPlugin < Plugin
 	end
 
 	def show_couriers(m, params)
-		get_scraper_manager.loaded_modules.join(', ')
+		get_scraper_manager.loaded_modules.map {|x| x::PRIMARY_NAME }.join(', ')
 	end
 
 	def help(plugin, topic="")
