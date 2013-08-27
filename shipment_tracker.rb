@@ -144,6 +144,10 @@ class ShipmentTrackerPlugin < Plugin
 			map {|k| "\0033#{k}\017" }.join(', ')
 	end
 
+	def show_couriers
+		get_scraper_manager.loaded_modules.join(', ')
+	end
+
 	def help(plugin, topic="")
 		"shipment [ list | add \002Label\017 \002TrackingNumber\017 \002CourierName\017 | del \002Label\017 | \002Label\017 | \002TrackingNumber\017 \002CourierName\017 ]"
 	end
@@ -197,6 +201,6 @@ plugin.map 'shipment cron_notify', :action => 'cron_notify', :auth_path => 'noti
 plugin.map 'shipment del :label', :action => 'del_shipment'
 plugin.map 'shipment add :label :number :courier', :action => 'add_shipment'
 
+plugin.map 'shipment :couriers', :action => 'show_couriers'
 plugin.map 'shipment :label', :action => 'status_named'
 plugin.map 'shipment :number :courier', :action => 'status_unnamed'
-
