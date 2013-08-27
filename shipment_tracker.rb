@@ -144,7 +144,7 @@ class ShipmentTrackerPlugin < Plugin
 			map {|k| "\0033#{k}\017" }.join(', ')
 	end
 
-	def show_couriers
+	def show_couriers(m, params)
 		get_scraper_manager.loaded_modules.join(', ')
 	end
 

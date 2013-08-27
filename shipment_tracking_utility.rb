@@ -207,6 +207,10 @@ class ShipmentTrackingUtilityPlugin < Plugin
 			@loaded_modules = Array.new
 		end
 
+		def loaded_modules
+			@loaded_modules.dup
+		end
+
 		def register(scraper_module)
 			for name in scraper_module::NAME_KEYS
 				if @by_name.has_key?(name.to_sym)
