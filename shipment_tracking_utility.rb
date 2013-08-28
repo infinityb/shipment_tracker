@@ -184,19 +184,14 @@ class ShipmentTrackingUtilityPlugin < Plugin
 			PRIMARY_NAME = 'USPS'
 
 			def self.fetch(number)
-				doc = Nokogiri::HTML(open("http://trkcnfrm1.smi.usps.com/PTSInternetWeb/InterLabelInquiry.do?origTrackNum=#{number}"))
-				latest_row = doc.search('//table[@summary="This table formats the detailed results."]/tr')[1]
-				if latest_row
-					status = ShipmentStatus.new(
-						:number => number,
-						:location => nil,
-						:time => nil,
-						:activity => latest_row.inner_text.strip(),
-						:carrier => PRIMARY_NAME
-					)
-				else
-					nil
-				end
+				doc = Nokogiri::HTML(open("https://tools.usps.com/go/TrackConfirmAction_input?origTrackNum=#{number}"))
+				ShipmentStatus.new(
+					:number => number, 
+					:location => doc.css('.shaded .location')[0].text.strip,
+					:time =>  doc.css('.shaded .date-time')[0].text.strip,
+					:activity => doc.css('.shaded .status')[0].text.strip,
+					:carrier => PRIMARY_NAME
+				)
 			end
 		end
 	end
