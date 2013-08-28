@@ -165,7 +165,7 @@ class ShipmentTrackerPlugin < Plugin
 			end
 			@registry[metalabel] = {
 				:number => params[:number],
-				:courier => params[:courier].to_sym()
+				:courier => params[:courier].downcase.to_sym
 			}
 			@registry['labels'] = @registry['labels'] + [params[:label]]
 			m.reply "Added"
