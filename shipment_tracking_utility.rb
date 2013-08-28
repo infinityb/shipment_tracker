@@ -1,7 +1,7 @@
 require 'rubygems'
 require 'nokogiri'
 require 'open-uri'
-require 'json' 
+require 'json'
 
 class ShipmentTrackingUtilityPlugin < Plugin
 	class ShipmentStatus
@@ -160,13 +160,13 @@ class ShipmentTrackingUtilityPlugin < Plugin
 		module PackageTrackr
 			NAME_KEYS = [:packagetrackr]
 			PRIMARY_NAME = 'packagetrackr'
-		
+
 			def self.fetch(number)
 				doc = Nokogiri::HTML(open("http://www.packagetrackr.com/track/#{number}"))
-				latest_row = doc.search('//[class~="track-info-progress"]//tr')[0]
-				details = latest_row.children[0].inner_text.strip.split(/\n/)
-		
-				if details
+				latest_row = doc.search('#track-info-progress tr')[0]
+
+				if latest_row
+					details = latest_row.children[0].inner_text.strip.split(/\n/)
 					status = ShipmentStatus.new(
 						:number => number,
 						:location => details[0],
@@ -177,7 +177,7 @@ class ShipmentTrackingUtilityPlugin < Plugin
 				else
 					nil
 				end
-			end 
+			end
 		end
 		module USPS
 			NAME_KEYS = [:usps]
