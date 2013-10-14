@@ -158,6 +158,10 @@ class ShipmentTrackerPlugin < Plugin
 				m.reply "error: wtf label"
 				return
 			end
+			if not get_scraper_manager.has_courier?(params[:courier])
+				m.reply "No courier by the name of " + params[:courier]
+				return
+			end
 			metalabel = mangle_label_name(params[:label])
 			if !@registry[metalabel].nil?
 				m.reply "label already exists."
@@ -168,7 +172,12 @@ class ShipmentTrackerPlugin < Plugin
 				:courier => params[:courier].downcase.to_sym
 			}
 			@registry['labels'] = @registry['labels'] + [params[:label]]
-			m.reply "Added"
+			status = status_fetch(params[:label])
+			if status
+				m.reply "Added; %s" % [status]
+			else # status = nil
+				m.reply "Added; No information is available yet."
+			end # status
 		rescue Exception => e
 			m.reply "I dun goofed. %s, %s" % [e.class, e]
 		end 
